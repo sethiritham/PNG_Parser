@@ -178,14 +178,13 @@ void PNGloader::reconstructImage(Image& image)
     for(uint32_t y = 0; y < image.height; y++)
     {
         uint8_t filterType = image.data[rawIndex++];
-        rawIndex ++;
 
         for (int c = 0; c < stride; c++ )
         {
             int pixelIndex = y * stride + c;
             uint8_t raw = image.data[rawIndex++];
 
-            uint8_t left = (c >= image.channels) ? 0 : image.pixels[pixelIndex - image.channels];
+            uint8_t left = (c >= image.channels) ? image.pixels[pixelIndex - image.channels] : 0;
             uint8_t up = (y > 0) ? image.pixels[pixelIndex - stride] : 0;
             uint8_t upLeft = (y > 0 && c >= image.channels) ? image.pixels[pixelIndex - stride - image.channels] : 0;
 
@@ -202,8 +201,9 @@ void PNGloader::reconstructImage(Image& image)
             image.pixels[pixelIndex] = val;
         }
 
-        rawIndex += stride;
     }
+
+    std::cout << "DEBUG: Reconstruction complete. Pixels: " << image.pixels.size() << std::endl;
 }
 
 
