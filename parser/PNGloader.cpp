@@ -78,10 +78,8 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
 
             uint8_t bitDepth = file.get();
             uint8_t colorType = file.get();
-            uint8_t compressionMethod = file.get();
-            uint8_t filterMethod = file.get();
-            uint8_t interlaceMethod = file.get();
 
+            file.ignore(3);
 
             if(colorType == 2) image.channels = 3;
             else if(colorType == 6) image.channels = 4;
@@ -96,7 +94,19 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
 
             readBigEndian32(file);
 
-            return true;
+        }
+
+        else if(std::string(type) == "IDAT")
+        {
+            std::cout<<"Processing IDAT chunk."<<std::endl;
+            
+            std::vector<uint8_t> data(length);
+            file.read(reinterpret_cast<char*>(data.data()), length);
+
+            image.zlibStream.insert(image.zlibStream.end(), data.begin(), data.end());
+
+            readBigEndian32(file);
+            
         }
 
         else if(std::string(type) == "IEND")
@@ -106,9 +116,18 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
         }
         else
         {
-            file.seekg(length, std::ios::cur);
+            file.seekg(length + 4, std::ios::cur);
         }
     }
+
+    if (image.zlibStream.empty()) {
+        std::cerr << "Error: No IDAT chunks found!" << std::endl;
+        return false;
+    }
+
+
+    std::cout << "Total Compressed Data Size: " << image.zlibStream.size() << " bytes" << std::endl;
+    return true;
 }
 
 
