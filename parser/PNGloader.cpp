@@ -1,5 +1,7 @@
 #include <iostream>
 #include "PNGloader.h"
+#include <zlib.h>
+#include <cmath>
 
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -23,6 +25,9 @@ bool PNGloader::Load(const char* filename, Image& image)
 
     std::cout<<"PNG signature is valid."<<std::endl;
     processChunks(file, image);
+
+
+    reconstructImage(image);
 
     return true;
     
@@ -57,6 +62,17 @@ uint32_t PNGloader::readBigEndian32(std::ifstream& file)
     uint8_t bytes[4];
     file.read(reinterpret_cast<char*>(bytes), 4);
     return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+}
+
+static uint8_t paethPredictor(uint8_t a, uint8_t b, uint8_t c)
+{
+    int p = a + b - c;
+    int pa = std::abs(p - a);
+    int pb = std::abs(p - b);
+    int pc = std::abs(p - c);
+    if(pa <= pb && pa <= pc) return a;
+    if(pb <= pa && pb <= pc) return b;
+    return c;
 }
 
 
@@ -127,9 +143,68 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
 
 
     std::cout << "Total Compressed Data Size: " << image.zlibStream.size() << " bytes" << std::endl;
+
+    //DECOMPRESSION - ZLIB FOR NOW AUTONOMOUS LATER
+    
+    unsigned long bytesPerScanline = 1 + (image.width * image.channels);
+    unsigned long expectedStreamSize = image.height * bytesPerScanline;
+
+    image.data.resize(expectedStreamSize);
+
+    unsigned long destLen = expectedStreamSize;
+    int result = uncompress(image.data.data(), &destLen, image.zlibStream.data(), image.zlibStream.size());
+
+    if(result != Z_OK)
+    {
+        std::cerr<<"Failed to decompress data."<<std::endl;
+        return false;
+    }
+
+    std::cout<<"Decompression successful."<<std::endl;
+    std::cout<<"Raw filtered data size: "<<image.data.size()<<" bytes"<<std::endl;
+
     return true;
 }
 
+
+void PNGloader::reconstructImage(Image& image)
+{
+    image.pixels.resize(image.width * image.height * image.channels);
+
+    int stride = image.width * image.channels;
+
+    unsigned long rawIndex = 0;
+
+    for(uint32_t y = 0; y < image.height; y++)
+    {
+        uint8_t filterType = image.data[rawIndex++];
+        rawIndex ++;
+
+        for (int c = 0; c < stride; c++ )
+        {
+            int pixelIndex = y * stride + c;
+            uint8_t raw = image.data[rawIndex++];
+
+            uint8_t left = (c >= image.channels) ? 0 : image.pixels[pixelIndex - image.channels];
+            uint8_t up = (y > 0) ? image.pixels[pixelIndex - stride] : 0;
+            uint8_t upLeft = (y > 0 && c >= image.channels) ? image.pixels[pixelIndex - stride - image.channels] : 0;
+
+            uint8_t val = 0;
+            switch (filterType)
+            {
+                case 0: val = raw; break;
+                case 1: val = raw + left; break;
+                case 2: val = raw + up; break;
+                case 3: val = raw + ((left + up) / 2); break;
+                case 4: val = raw + paethPredictor(left, up, upLeft); break;
+                default: val = raw; break;
+            }
+            image.pixels[pixelIndex] = val;
+        }
+
+        rawIndex += stride;
+    }
+}
 
 
 PNGloader::PNGloader() {}

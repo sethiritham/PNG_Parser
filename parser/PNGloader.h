@@ -13,6 +13,7 @@ struct Image
     uint32_t channels = 0;
     std::vector<uint8_t> data;
     std::vector<uint8_t> zlibStream;
+    std::vector<uint8_t> pixels;
 };
 
 
@@ -29,6 +30,7 @@ public:
 private:
     bool validateSignature(std::ifstream& file);
     bool processChunks(std::ifstream& file, Image& image);
+    void reconstructImage(Image& image);
     uint32_t readBigEndian32(std::ifstream& file);
 };
 
