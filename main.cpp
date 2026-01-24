@@ -1,21 +1,109 @@
+#include "vendor/imgui/imgui.h"
+#include "vendor/imgui/imgui_impl_glfw.h"
+#include "vendor/imgui/imgui_impl_opengl3.h"
+#define GL_GLEXT_PROTOTYPES
+#include <GLFW/glfw3.h>
 #include <iostream>
 #include "parser/PNGloader.h"
 
 PNGloader pngLoader;
 Image image;
 
+
+GLuint UploadTexture(const Image& img)
+{
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.pixels.data());
+    
+    return textureID;
+}
+
 int main()
 {
-    if (pngLoader.Load("sculpture.png", image))
+    if(!glfwInit())
     {
-        std::cout << "PNG loaded successfully.\n";
-        std::cout << "Width: " << image.width << "\n";
-        std::cout << "Height: " << image.height << "\n";
-        std::cout << "Channels: " << image.channels << "\n";
-        std::cout << "Data size: " << image.data.size() << " bytes\n";
+        std::cerr<<"Failed to initialize GLFW."<<std::endl;
+        return -1;
+    }
+    
+    const char* glsl_version = "#version 130";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    
+
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "GLFW Example", NULL, NULL);
+    if(window == NULL) return 1;
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    GLuint myTexture = 0;
+
+    if(pngLoader.Load("sculpture.png", image))
+    {
+        std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
+        myTexture = UploadTexture(image);
     }
     else
     {
-        std::cout << "Failed to load PNG.\n";
+        std::cerr << "Failed to load image!" << std::endl;
+        return -1;
     }
+    
+
+    while(!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+        
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        
+        ImGui::Begin("Image Viewer");
+
+        if(myTexture)
+        {
+            ImGui::Text("Size: %d x %d", image.width, image.height);
+            ImGui::Image((void*)(intptr_t)myTexture, ImVec2(image.width, image.height));
+        }
+        else
+        {
+            ImGui::Text("Failed to load image!");
+        }
+
+        ImGui::End();
+        
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        
+        glfwSwapBuffers(window);
+    }
+    
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    
+    return 0;
 }

@@ -20,6 +20,7 @@ void processInput(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
+        std::cout<<"Escape key pressed. Closing window."<<std::endl;
         glfwSetWindowShouldClose(window, true);
     }
 }
