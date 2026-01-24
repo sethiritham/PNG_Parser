@@ -61,7 +61,7 @@ uint32_t PNGloader::readBigEndian32(std::ifstream& file)
 {
     uint8_t bytes[4];
     file.read(reinterpret_cast<char*>(bytes), 4);
-    return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
+    return (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) | (uint32_t(bytes[2]) << 8) | uint32_t(bytes[3]);
 }
 
 static uint8_t paethPredictor(uint8_t a, uint8_t b, uint8_t c)
