@@ -93,6 +93,14 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
             image.height = readBigEndian32(file);
 
             uint8_t bitDepth = file.get();
+
+            if(bitDepth != 8) // Parser only works on 8bit images for now
+            {
+                std::cerr << "Only 8-bit PNG supported\n";
+                return false;
+            }
+
+            std::cout<<"BIT DEPTH: "<<bitDepth<<std::endl;
             uint8_t colorType = file.get();
 
             file.ignore(3);
@@ -192,10 +200,10 @@ void PNGloader::reconstructImage(Image& image)
             switch (filterType)
             {
                 case 0: val = raw; break;
-                case 1: val = raw + left; break;
-                case 2: val = raw + up; break;
-                case 3: val = raw + ((left + up) / 2); break;
-                case 4: val = raw + paethPredictor(left, up, upLeft); break;
+                case 1: val = (raw + left) & 0xFF; break; //(200 + 100) % 256 (PNG explicitly requires modulo 256 arithmetic for filters.)
+                case 2: val = (raw + up) & 0xFF; break;
+                case 3: val = (raw + ((left + up) / 2)) & 0xFF; break;
+                case 4: val = (raw + paethPredictor(left, up, upLeft)) & 0xFF; break;
                 default: val = raw; break;
             }
             image.pixels[pixelIndex] = val;

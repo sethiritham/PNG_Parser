@@ -8,24 +8,72 @@
 
 PNGloader pngLoader;
 Image image;
+int brightness;
 
+
+void processImage(Image& img, int brightness = 0)
+{
+    img.editedPixels = img.pixels;
+    int bytesPerPixel = img.channels;
+    for(int i = 0; i < img.editedPixels.size(); i+=bytesPerPixel)
+    {
+        int colorChannels = (bytesPerPixel == 4) ? 3 : bytesPerPixel;
+        for(int c = 0; c < colorChannels; c++)
+        {
+            int value = img.editedPixels[i + c] + brightness;
+            if(value > 255)
+            {
+                img.editedPixels[i + c] = 255;
+            }
+            else if(value < 0)
+            {
+                img.editedPixels[i + c] = 0;
+            }
+            else
+            {
+                img.editedPixels[i + c] = value;
+            }
+        }
+    }
+}
 
 GLuint UploadTexture(const Image& img)
 {
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); //Removes any padding - data as it is (OPGL ASSUMES 4 BYTES PER ROW)
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img.pixels.data());
+    GLenum format = (img.channels == 4) ? GL_RGBA : GL_RGB; //Tells OPGL the exact image channels
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format,
+                 img.width, img.height,
+                 0, format,
+                 GL_UNSIGNED_BYTE,
+                 img.editedPixels.data());
     
     return textureID;
 }
 
+void UpdateTexture(GLuint textureID,const Image& img) 
+{
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    GLenum format = (img.channels == 4) ? GL_RGBA : GL_RGB;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format,
+                 img.width, img.height,
+                 0, format,
+                 GL_UNSIGNED_BYTE,
+                 img.editedPixels.data());
+}
+
 int main()
 {
+
     if(!glfwInit())
     {
         std::cerr<<"Failed to initialize GLFW."<<std::endl;
@@ -54,9 +102,10 @@ int main()
 
     GLuint myTexture = 0;
 
-    if(pngLoader.Load("sculpture.png", image))
+    if(pngLoader.Load("wooden_door_2.png", image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
+        image.editedPixels = image.pixels;
         myTexture = UploadTexture(image);
     }
     else
@@ -80,6 +129,22 @@ int main()
         {
             ImGui::Text("Size: %d x %d", image.width, image.height);
             ImGui::Image((void*)(intptr_t)myTexture, ImVec2(image.width, image.height));
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+            ImGui::Separator();
+            ImGui::Spacing();
+            
+            if(ImGui::SliderInt("Brightness", &brightness, -255, 255))
+            {
+                processImage(image, brightness);
+                UpdateTexture(myTexture, image);
+            }
+
+            if(ImGui::Button("Reset"))
+            {
+                brightness = 0;
+                processImage(image, brightness);
+                UpdateTexture(myTexture, image);
+            }
         }
         else
         {
@@ -97,6 +162,11 @@ int main()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         glfwSwapBuffers(window);
+    }
+
+    if(myTexture)
+    {
+        glDeleteTextures(1, &myTexture);
     }
     
     ImGui_ImplOpenGL3_Shutdown();

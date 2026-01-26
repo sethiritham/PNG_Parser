@@ -12,6 +12,7 @@ struct Image
     uint32_t height = 0;
     uint32_t channels = 0;
     std::vector<uint8_t> data;
+    std::vector<uint8_t> editedPixels;
     std::vector<uint8_t> zlibStream;
     std::vector<uint8_t> pixels;
 };
