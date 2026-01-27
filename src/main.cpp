@@ -12,6 +12,8 @@ int brightness;
 float saturation = 1.f;
 float contrast = 1.f;
 
+
+
 int clamp_value(int value)
 {
     if (value > 255)
@@ -28,6 +30,10 @@ int clamp_value(int value)
     }
 }
 
+
+/**
+   @brief handles contrast, saturation, brightness logic
+ */
 void processImage(Image& img, int brightness = 0, float contrast = 1.f, float saturation =1.f )
 {
     img.editedPixels = img.pixels;
@@ -80,6 +86,10 @@ GLuint UploadTexture(const Image& img)
     return textureID;
 }
 
+/**
+ * @brief Updates the texture after changes in editedPixels
+ * @param textureID opgl specific data-type used for rendering
+ */
 void UpdateTexture(GLuint textureID,const Image& img) 
 {
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -92,50 +102,21 @@ void UpdateTexture(GLuint textureID,const Image& img)
                  img.editedPixels.data());
 }
 
-int main()
+/**
+ * @brief Handles the loading and the GUI logic
+ */
+void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
 {
-
-    if(!glfwInit())
-    {
-        std::cerr<<"Failed to initialize GLFW."<<std::endl;
-        return -1;
-    }
-    
-    const char* glsl_version = "#version 130";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    
-
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "GLFW Example", NULL, NULL);
-    if(window == NULL) return 1;
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
-
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
-
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    GLuint myTexture = 0;
-
     if(pngLoader.Load("assets/dogs.png", image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
         image.editedPixels = image.pixels;
         myTexture = UploadTexture(image);
-        
     }
     else
     {
         std::cerr << "Failed to load image!" << std::endl;
-        return -1;
     }
-    
 
     while(!glfwWindowShouldClose(window))
     {
@@ -187,7 +168,42 @@ int main()
         
         glfwSwapBuffers(window);
     }
+}
 
+
+int main()
+{
+
+    if(!glfwInit())
+    {
+        std::cerr<<"Failed to initialize GLFW."<<std::endl;
+        return -1;
+    }
+    
+    const char* glsl_version = "#version 130";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    
+
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "GLFW Example", NULL, NULL);
+    if(window == NULL) return 1;
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    GLuint myTexture = 0;
+    
+    ProcessAndDisplayImage(window, myTexture);
+    
     if(myTexture)
     {
         glDeleteTextures(1, &myTexture);
