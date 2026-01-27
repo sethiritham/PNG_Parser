@@ -9,34 +9,54 @@
 PNGloader pngLoader;
 Image image;
 int brightness;
+float saturation = 1.f;
+float contrast = 1.f;
 
+int clamp_value(int value)
+{
+    if (value > 255)
+    {
+        return 255;
+    }
+    else if (value < 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return value;
+    }
+}
 
-void processImage(Image& img, int brightness = 0)
+void processImage(Image& img, int brightness = 0, float contrast = 1.f, float saturation =1.f )
 {
     img.editedPixels = img.pixels;
     int bytesPerPixel = img.channels;
+    float l_saturation;
+    float m_contrast = 128;
     for(int i = 0; i < img.editedPixels.size(); i+=bytesPerPixel)
     {
         int colorChannels = (bytesPerPixel == 4) ? 3 : bytesPerPixel;
+        l_saturation = 0.299f*img.editedPixels[i] + 0.587f*img.editedPixels[i+1] + 0.114f*img.editedPixels[i+2];
         for(int c = 0; c < colorChannels; c++)
         {
             int value = img.editedPixels[i + c] + brightness;
-            if(value > 255)
-            {
-                img.editedPixels[i + c] = 255;
-            }
-            else if(value < 0)
-            {
-                img.editedPixels[i + c] = 0;
-            }
-            else
-            {
-                img.editedPixels[i + c] = value;
-            }
+            value = clamp_value(value);
+            img.editedPixels[i + c] = value;
+            value = (int)(img.editedPixels[i+c] - m_contrast) * contrast + m_contrast;
+            value = clamp_value(value);
+            img.editedPixels[i+c] = value;
+            value = (int)(img.editedPixels[i+c] - l_saturation)*saturation + l_saturation;
+            value = clamp_value(value);
+            img.editedPixels[i+c] = value;
         }
     }
 }
 
+/**
+    @brief Uploads the texture to the window
+    @param img The image to be uploaded
+*/
 GLuint UploadTexture(const Image& img)
 {
     GLuint textureID;
@@ -48,7 +68,8 @@ GLuint UploadTexture(const Image& img)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    GLenum format = (img.channels == 4) ? GL_RGBA : GL_RGB; //Tells OPGL the exact image channels
+    // Tells OPGL the exact image channels
+    GLenum format = (img.channels == 4) ? GL_RGBA : GL_RGB; 
 
     glTexImage2D(GL_TEXTURE_2D, 0, format,
                  img.width, img.height,
@@ -102,11 +123,12 @@ int main()
 
     GLuint myTexture = 0;
 
-    if(pngLoader.Load("wooden_door_2.png", image))
+    if(pngLoader.Load("dogs.png", image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
         image.editedPixels = image.pixels;
         myTexture = UploadTexture(image);
+        
     }
     else
     {
@@ -133,16 +155,18 @@ int main()
             ImGui::Separator();
             ImGui::Spacing();
             
-            if(ImGui::SliderInt("Brightness", &brightness, -255, 255))
+            if(ImGui::SliderInt("Brightness", &brightness, -255, 255) || ImGui::SliderFloat("Contrast", &contrast, 0.f, 2.f)||ImGui::SliderFloat("Saturation", &saturation, 0.f, 2.f))
             {
-                processImage(image, brightness);
+                processImage(image, brightness, contrast, saturation);
                 UpdateTexture(myTexture, image);
             }
 
             if(ImGui::Button("Reset"))
             {
                 brightness = 0;
-                processImage(image, brightness);
+                contrast = 1.f;
+                saturation = 1.f;
+                processImage(image, brightness, contrast, saturation);
                 UpdateTexture(myTexture, image);
             }
         }

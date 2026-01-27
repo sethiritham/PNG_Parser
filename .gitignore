@@ -3,3 +3,5 @@ main
 glfw
 glad
 KHR
+.vscode
+*.ini
