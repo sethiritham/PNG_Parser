@@ -78,7 +78,7 @@ Links them together with:
 Keeps build fast by recompiling only changed files
 
 
-Why This Project Exists
+## Why This Project Exists
 This is not just an image viewer.
 It is a learning project to understand:
 
@@ -93,7 +93,7 @@ How OpenGL displays raw image buffers
 How real C++ projects are built without heavy frameworks
 
 
-Example Build Command (Without Makefile)
+## Example Build Command (Without Makefile)
 This is what the Makefile automates:
 ```
 g++ main.cpp parser/PNGloader.cpp \
@@ -102,12 +102,12 @@ vendor/imgui/imgui_impl_glfw.cpp vendor/imgui/imgui_impl_opengl3.cpp \
 -lz -lglfw -lGL -ldl \
 -o editor
 ```
-Future Plans
+## Future Plans
 - Full image editing pipeline
 - Image format conversion pipeline
 - Support for more image formats
 - Save edited PNG output
 
-Author
+## Author
 **Ritham Sethi**
 Learning systems programming, graphics, and file format internals through hands-on implementation.
