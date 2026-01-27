@@ -123,7 +123,7 @@ int main()
 
     GLuint myTexture = 0;
 
-    if(pngLoader.Load("dogs.png", image))
+    if(pngLoader.Load("assets/dogs.png", image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
         image.editedPixels = image.pixels;
