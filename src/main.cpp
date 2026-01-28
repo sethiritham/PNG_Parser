@@ -7,12 +7,14 @@
 #include "parser/PNGloader.h"
 
 PNGloader pngLoader;
-Image image;
-int brightness;
-float saturation = 1.f;
-float contrast = 1.f;
 
-
+typedef struct
+{
+    int brightness = 0;
+    float saturation = 1.f;
+    float contrast = 1.f;
+    Image image;
+}IMG_PROP;
 
 int clamp_value(int value)
 {
@@ -40,7 +42,7 @@ void processImage(Image& img, int brightness = 0, float contrast = 1.f, float sa
     int bytesPerPixel = img.channels;
     float l_saturation;
     float m_contrast = 128;
-    for(int i = 0; i < img.editedPixels.size(); i+=bytesPerPixel)
+    for(int i = 0; i < (int)img.editedPixels.size(); i+=bytesPerPixel)
     {
         int colorChannels = (bytesPerPixel == 4) ? 3 : bytesPerPixel;
         l_saturation = 0.299f*img.editedPixels[i] + 0.587f*img.editedPixels[i+1] + 0.114f*img.editedPixels[i+2];
@@ -107,11 +109,12 @@ void UpdateTexture(GLuint textureID,const Image& img)
  */
 void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
 {
-    if(pngLoader.Load("assets/dogs.png", image))
+    IMG_PROP img;
+    if(pngLoader.Load("assets/dogs.png", img.image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
-        image.editedPixels = image.pixels;
-        myTexture = UploadTexture(image);
+        img.image.editedPixels = img.image.pixels;
+        myTexture = UploadTexture(img.image);
     }
     else
     {
@@ -130,25 +133,25 @@ void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
 
         if(myTexture)
         {
-            ImGui::Text("Size: %d x %d", image.width, image.height);
-            ImGui::Image((void*)(intptr_t)myTexture, ImVec2(image.width, image.height));
+            ImGui::Text("Size: %d x %d", img.image.width, img.image.height);
+            ImGui::Image((void*)(intptr_t)myTexture, ImVec2(img.image.width, img.image.height));
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
             ImGui::Separator();
             ImGui::Spacing();
             
-            if(ImGui::SliderInt("Brightness", &brightness, -255, 255) || ImGui::SliderFloat("Contrast", &contrast, 0.f, 2.f)||ImGui::SliderFloat("Saturation", &saturation, 0.f, 2.f))
+            if(ImGui::SliderInt("Brightness", &img.brightness, -255, 255) || ImGui::SliderFloat("Contrast", &img.contrast, 0.f, 2.f)||ImGui::SliderFloat("Saturation", &img.saturation, 0.f, 2.f))
             {
-                processImage(image, brightness, contrast, saturation);
-                UpdateTexture(myTexture, image);
+                processImage(img.image, img.brightness, img.contrast, img.saturation);
+                UpdateTexture(myTexture, img.image);
             }
 
             if(ImGui::Button("Reset"))
             {
-                brightness = 0;
-                contrast = 1.f;
-                saturation = 1.f;
-                processImage(image, brightness, contrast, saturation);
-                UpdateTexture(myTexture, image);
+                img.brightness = 0;
+                img.contrast = 1.f;
+                img.saturation = 1.f;
+                processImage(img.image, img.brightness, img.contrast, img.saturation);
+                UpdateTexture(myTexture, img.image);
             }
         }
         else

@@ -17,7 +17,7 @@ struct Image
     std::vector<uint8_t> pixels;
 };
 
-
+// hello world!
 
 class PNGloader
 {
@@ -30,6 +30,7 @@ public:
 
 private:
     bool validateSignature(std::ifstream& file);
+    
     bool processChunks(std::ifstream& file, Image& image);
     void reconstructImage(Image& image);
     uint32_t readBigEndian32(std::ifstream& file);
