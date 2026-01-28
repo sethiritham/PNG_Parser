@@ -5,7 +5,9 @@
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};// FIxed signature at top of every PNG file
 
-
+/**
+ * @brief Calls all of the PNGLoader functions to procesess pixels from PNG.
+ */
 bool PNGloader::Load(const char* filename, Image& image)
 {
     std::ifstream file(filename, std::ios::binary);
@@ -140,7 +142,7 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
             
         }
 
-        else if(std::string(type) == "IEND")
+        else if(std::string(type) == "IEND") //ENDING CHUNK
         {
             std::cout<<"End of PNG file."<<std::endl;
             break;
@@ -181,7 +183,9 @@ bool PNGloader::processChunks(std::ifstream& file, Image& image)
     return true;
 }
 
-
+/**
+ * @brief unfilters the PNG after DEFLATE decompression
+ */
 void PNGloader::reconstructImage(Image& image)
 {
     image.pixels.resize(image.width * image.height * image.channels);
@@ -199,9 +203,9 @@ void PNGloader::reconstructImage(Image& image)
             int pixelIndex = y * stride + c;
             uint8_t raw = image.data[rawIndex++];
 
-            uint8_t left = (c >= image.channels) ? image.pixels[pixelIndex - image.channels] : 0;
+            uint8_t left = (c >= (int)image.channels) ? image.pixels[pixelIndex - image.channels] : 0;
             uint8_t up = (y > 0) ? image.pixels[pixelIndex - stride] : 0;
-            uint8_t upLeft = (y > 0 && c >= image.channels) ? image.pixels[pixelIndex - stride - image.channels] : 0;
+            uint8_t upLeft = (y > 0 && c >= (int)image.channels) ? image.pixels[pixelIndex - stride - image.channels] : 0;
 
             uint8_t val = 0;
             switch (filterType)

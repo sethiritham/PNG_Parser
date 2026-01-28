@@ -17,8 +17,6 @@ struct Image
     std::vector<uint8_t> pixels;
 };
 
-// hello world!
-
 class PNGloader
 {
 public:

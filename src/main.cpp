@@ -106,11 +106,11 @@ void UpdateTexture(GLuint textureID,const Image& img)
 /**
  * @brief Handles the loading of OPGL-TEXTURE and the GUI logic
  */
-void ProcessAndDisplayTex(GLFWwindow* window)
+void ProcessAndDisplayTex(GLFWwindow* window, const char* file_path)
 {
     IMG_PROP img;
     img.texture = 0;
-    if(pngLoader.Load("assets/dogs.png", img.image))
+    if(pngLoader.Load(file_path, img.image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
         img.image.editedPixels = img.image.pixels;
@@ -187,7 +187,7 @@ GLFWwindow* init_UI()
     if(!glfwInit())
     {
         std::cerr<<"Failed to initialize GLFW."<<std::endl;
-        nullptr;
+        return nullptr;
     }
     
     const char* glsl_version = "#version 130";
@@ -226,11 +226,9 @@ void destroy_UI(GLFWwindow *window)
 int main()
 {
     GLFWwindow *window;
-
     window = init_UI();
-    
-    ProcessAndDisplayTex(window);
-
+    const char* file_path = "assets/sculpture.png";
+    ProcessAndDisplayTex(window, file_path);
     destroy_UI(window);
     
     return 0;
