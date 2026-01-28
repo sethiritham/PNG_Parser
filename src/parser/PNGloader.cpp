@@ -3,9 +3,7 @@
 #include <zlib.h>
 #include <cmath>
 
-
-static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-
+static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};// FIxed signature at top of every PNG file
 
 
 bool PNGloader::Load(const char* filename, Image& image)
@@ -33,7 +31,9 @@ bool PNGloader::Load(const char* filename, Image& image)
     
 }
 
-
+/**
+ * @brief checks for valid PNG signature
+ */
 bool PNGloader::validateSignature(std::ifstream& file)
 {
     uint8_t buffer[8];
@@ -57,6 +57,9 @@ bool PNGloader::validateSignature(std::ifstream& file)
     return true;
 }
 
+/**
+ * @brief Converts BIG ENDIAN files to LITTLE ENDIAN (CPU expects Little Endian ordering)
+ */
 uint32_t PNGloader::readBigEndian32(std::ifstream& file)
 {
     uint8_t bytes[4];
@@ -64,6 +67,10 @@ uint32_t PNGloader::readBigEndian32(std::ifstream& file)
     return (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) | (uint32_t(bytes[2]) << 8) | uint32_t(bytes[3]);
 }
 
+
+/**
+ * @brief Determines the closest neighbour to current pixel 
+ */
 static uint8_t paethPredictor(uint8_t a, uint8_t b, uint8_t c)
 {
     int p = a + b - c;
