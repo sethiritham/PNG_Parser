@@ -14,6 +14,7 @@ typedef struct
     float saturation = 1.f;
     float contrast = 1.f;
     Image image;
+    GLuint texture;
 }IMG_PROP;
 
 int clamp_value(int value)
@@ -50,11 +51,9 @@ void processImage(Image& img, int brightness = 0, float contrast = 1.f, float sa
         {
             int value = img.editedPixels[i + c] + brightness;
             value = clamp_value(value);
-            img.editedPixels[i + c] = value;
-            value = (int)(img.editedPixels[i+c] - m_contrast) * contrast + m_contrast;
+            value = (int)(value - m_contrast) * contrast + m_contrast;
             value = clamp_value(value);
-            img.editedPixels[i+c] = value;
-            value = (int)(img.editedPixels[i+c] - l_saturation)*saturation + l_saturation;
+            value = (int)(value - l_saturation)*saturation + l_saturation;
             value = clamp_value(value);
             img.editedPixels[i+c] = value;
         }
@@ -105,16 +104,17 @@ void UpdateTexture(GLuint textureID,const Image& img)
 }
 
 /**
- * @brief Handles the loading and the GUI logic
+ * @brief Handles the loading of OPGL-TEXTURE and the GUI logic
  */
-void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
+void ProcessAndDisplayTex(GLFWwindow* window)
 {
     IMG_PROP img;
+    img.texture = 0;
     if(pngLoader.Load("assets/dogs.png", img.image))
     {
         std::cout << "Image Loaded! Uploading to GPU..." << std::endl;
         img.image.editedPixels = img.image.pixels;
-        myTexture = UploadTexture(img.image);
+        img.texture = UploadTexture(img.image);
     }
     else
     {
@@ -131,18 +131,22 @@ void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
         
         ImGui::Begin("Image Viewer");
 
-        if(myTexture)
+        if(img.texture)
         {
             ImGui::Text("Size: %d x %d", img.image.width, img.image.height);
-            ImGui::Image((void*)(intptr_t)myTexture, ImVec2(img.image.width, img.image.height));
+            ImGui::Image((void*)(intptr_t)img.texture, ImVec2(img.image.width, img.image.height));
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
             ImGui::Separator();
             ImGui::Spacing();
+
+            bool is_brightness = ImGui::SliderInt("Brightness", &img.brightness, -255, 255);
+            bool is_contrast = ImGui::SliderFloat("Contrast", &img.contrast, 0.f, 2.f);
+            bool is_saturation = ImGui::SliderFloat("Saturation", &img.saturation, 0.f, 2.f);
             
-            if(ImGui::SliderInt("Brightness", &img.brightness, -255, 255) || ImGui::SliderFloat("Contrast", &img.contrast, 0.f, 2.f)||ImGui::SliderFloat("Saturation", &img.saturation, 0.f, 2.f))
+            if(is_brightness || is_contrast || is_saturation)
             {
                 processImage(img.image, img.brightness, img.contrast, img.saturation);
-                UpdateTexture(myTexture, img.image);
+                UpdateTexture(img.texture, img.image);
             }
 
             if(ImGui::Button("Reset"))
@@ -151,7 +155,7 @@ void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
                 img.contrast = 1.f;
                 img.saturation = 1.f;
                 processImage(img.image, img.brightness, img.contrast, img.saturation);
-                UpdateTexture(myTexture, img.image);
+                UpdateTexture(img.texture, img.image);
             }
         }
         else
@@ -171,16 +175,19 @@ void ProcessAndDisplayImage(GLFWwindow* window, GLuint myTexture)
         
         glfwSwapBuffers(window);
     }
+
+    if(img.texture)
+    {
+        glDeleteTextures(1, &img.texture);
+    }
 }
 
-
-int main()
+GLFWwindow* init_UI()
 {
-
     if(!glfwInit())
     {
         std::cerr<<"Failed to initialize GLFW."<<std::endl;
-        return -1;
+        nullptr;
     }
     
     const char* glsl_version = "#version 130";
@@ -189,7 +196,7 @@ int main()
     
 
     GLFWwindow* window = glfwCreateWindow(1280, 720, "GLFW Example", NULL, NULL);
-    if(window == NULL) return 1;
+    if(window == NULL) return nullptr;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -203,20 +210,28 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    GLuint myTexture = 0;
-    
-    ProcessAndDisplayImage(window, myTexture);
-    
-    if(myTexture)
-    {
-        glDeleteTextures(1, &myTexture);
-    }
-    
+    return window;
+}
+
+
+void destroy_UI(GLFWwindow *window)
+{     
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+int main()
+{
+    GLFWwindow *window;
+
+    window = init_UI();
+    
+    ProcessAndDisplayTex(window);
+
+    destroy_UI(window);
     
     return 0;
 }
