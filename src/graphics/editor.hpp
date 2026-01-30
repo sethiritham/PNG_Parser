@@ -5,7 +5,7 @@
 #include "parser/PNGloader.h"
 #include "parser/PNGloader.h"
 
-inline void processImage(Image& img, int brightness = 0, float contrast = 1.f, float saturation =1.f );
+void processImage(Image& img, int brightness = 0, float contrast = 1.f, float saturation =1.f );
 
 
 #endif

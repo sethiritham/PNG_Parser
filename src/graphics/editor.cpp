@@ -3,7 +3,7 @@
 /**
    @brief handles contrast, saturation, brightness logic
  */
-inline void processImage(Image& img, int brightness = 0, float contrast = 1.f, float saturation =1.f )
+void processImage(Image& img, int brightness, float contrast, float saturation)
 {
     img.editedPixels = img.pixels;
     int bytesPerPixel = img.channels;

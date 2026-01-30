@@ -10,8 +10,8 @@
 #include "editor.hpp"
 #include "texture.hpp"
 
-inline GLFWwindow* init_UI();
-inline void destroy_UI(GLFWwindow *window);
-inline void process_and_display_tex(GLFWwindow* window, const char* file_path);
+GLFWwindow* init_UI();
+void destroy_UI(GLFWwindow *window);
+void process_and_display_tex(GLFWwindow* window, const char* file_path);
 
 #endif

@@ -1,8 +1,8 @@
 #include "UI.hpp"
 
+PNGloader pngLoader;
 
-
-inline GLFWwindow* init_UI()     
+GLFWwindow* init_UI()     
 {
     if(!glfwInit())
     {
@@ -33,7 +33,7 @@ inline GLFWwindow* init_UI()
     return window;
 }
 
-inline void destroy_UI(GLFWwindow *window)
+void destroy_UI(GLFWwindow *window)
 {     
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -45,7 +45,7 @@ inline void destroy_UI(GLFWwindow *window)
 /**
  * @brief Handles the loading of OPGL-TEXTURE and the GUI logic
  */
-inline void process_and_display_tex(GLFWwindow* window, const char* file_path)
+void process_and_display_tex(GLFWwindow* window, const char* file_path)
 {
     IMG_PROP img;
     img.texture = 0;

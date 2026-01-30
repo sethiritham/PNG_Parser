@@ -1,7 +1,5 @@
-vendor/
-main
-glfw
-glad
-KHR
+src/vendor/
+build/
+imgui.ini
 .vscode
 *.ini
