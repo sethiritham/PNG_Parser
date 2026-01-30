@@ -1,9 +1,12 @@
+#define GL_GLEXT_PROTOTYPES
+#include <GLFW/glfw3.h>
+
+#include <iostream>
+
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
 #include "vendor/imgui/imgui_impl_opengl3.h"
-#define GL_GLEXT_PROTOTYPES
-#include <GLFW/glfw3.h>
-#include <iostream>
+
 #include "parser/PNGloader.h"
 #include "graphics/UI.hpp"
 #include "graphics/editor.hpp"
