@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "editor.hpp"
+#include "texture.hpp"
 
 inline GLFWwindow* init_UI()
 {
