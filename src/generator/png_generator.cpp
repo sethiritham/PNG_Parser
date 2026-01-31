@@ -2,24 +2,8 @@
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
-void write_little_endian_16(std::ofstream& file, uint16_t value) {
-    uint8_t bytes[2];
-    bytes[0] = (value >> 0) & 0xFF;
-    bytes[1] = (value >> 8) & 0xFF;
-    file.write(reinterpret_cast<char*>(bytes), 2);
-}
 
-void write_little_endian_32(std::ofstream& file, uint32_t value)
-{
-    uint8_t bytes[4];
-    bytes[0] = (value >> 0) & 0xFF; // Least significant byte first (LITTLE ENDIAN)
-    bytes[1] = (value >> 8) & 0xFF;
-    bytes[2] = (value >> 16) & 0xFF;
-    bytes[3] = (value >> 24) & 0xFF;
-    file.write(reinterpret_cast<char*>(bytes), 4);
-}
-
-bool SaveBMP(const char* filename, Image& edited_image)
+bool save_bmp(const char* filename, Image& edited_image)
 {
     std::ofstream file(filename, std::ios::binary);
 

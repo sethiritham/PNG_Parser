@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstdint>
 
+#include "utils.hpp"
+
 struct Image
 {
     uint32_t width = 0;
@@ -31,7 +33,6 @@ private:
     
     bool processChunks(std::ifstream& file, Image& image);
     void reconstructImage(Image& image);
-    uint32_t readBigEndian32(std::ifstream& file);
 };
 
 #endif // PNGLOADER_H

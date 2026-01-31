@@ -100,12 +100,13 @@ void process_and_display_tex(GLFWwindow* window, const char* file_path)
 
             ImGui::Spacing();
 
-
-            if(!is_brightness || !is_contrast || !is_saturation)
+            bool unchanged_image = ((img.brightness == 0) || (img.contrast == 1.f) || (img.saturation == 1.f));
+            //Only save the image if image attributes have been changed 
+            if(!unchanged_image)
             {
                 if(ImGui::Button("Save Image"))
                 {
-                    if(SaveBMP("EditedImage.bmp", img.image))
+                    if(save_bmp("EditedImage.bmp", img.image))
                     {
                         std::cout<<"IMAGE SAVED!"<<std::endl;
                     }

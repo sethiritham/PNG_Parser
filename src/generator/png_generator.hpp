@@ -9,13 +9,15 @@
 #include <cmath>
 #include <zlib.h>
 #include <cstdint>
-#include <fstream>
-#include "parser/PNGloader.h"
 
 #include "parser/PNGloader.h"
+#include "utils.hpp"
 
 
-bool SaveBMP(const char* filename, Image& edited_image);
+/**
+ * @brief Saves BitMap file version of the edited image.
+ */
+bool save_bmp(const char* filename, Image& edited_image);
 
 
 #endif
