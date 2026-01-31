@@ -12,10 +12,10 @@ void write_little_endian_16(std::ofstream& file, uint16_t value) {
 void write_little_endian_32(std::ofstream& file, uint32_t value)
 {
     uint8_t bytes[4];
-    bytes[0] = (value << 0) & 0xFF;
-    bytes[1] = (value << 8) & 0xFF;
-    bytes[2] = (value << 16) & 0xFF;
-    bytes[3] = (value << 24) & 0xFF;
+    bytes[0] = (value >> 0) & 0xFF; // Least significant byte first (LITTLE ENDIAN)
+    bytes[1] = (value >> 8) & 0xFF;
+    bytes[2] = (value >> 16) & 0xFF;
+    bytes[3] = (value >> 24) & 0xFF;
     file.write(reinterpret_cast<char*>(bytes), 4);
 }
 
@@ -30,12 +30,11 @@ bool SaveBMP(const char* filename, Image& edited_image)
     }
 
     uint32_t padding_amount = (4 - (edited_image.width * 3) % 4 ) % 4;
-    uint32_t file_header_size = 14;
     uint32_t data_offset = 54; //0x36
     uint32_t header_size = 40; //0x28
     uint32_t file_size = data_offset + (edited_image.width  * 3  + padding_amount) * edited_image.height;
     
-    file.write("RITHAM", 6); //FILE SIGNATURE
+    file.write("BM", 2); //FILE SIGNATURE
     
     write_little_endian_32(file, file_size); 
     write_little_endian_32(file, 0); // reserved 
@@ -60,11 +59,11 @@ bool SaveBMP(const char* filename, Image& edited_image)
     const std::vector<uint8_t>& src = edited_image.editedPixels;
     int channels = edited_image.channels;
 
-    for(int y = 0; y < edited_image.height; y++)
+    for(int y = 0; y < (int)edited_image.height; y++)
     {
-        for(int x = 0; x < edited_image.width; x++)
+        for(int x = 0; x < (int)edited_image.width; x++)
         {
-            int index = (y* edited_image.width + x)*channels;
+            int index = (y* (int)edited_image.width + x)*channels;
             int r = src[index];
             int g = src[index + 1];
             int b = src[index + 2];
@@ -74,7 +73,7 @@ bool SaveBMP(const char* filename, Image& edited_image)
             file.put(r);
         }
 
-        for(int p = 0; p < padding_amount; p++)
+        for(int p = 0; p < (int)padding_amount; p++)
         {
             file.put(0);
         }
