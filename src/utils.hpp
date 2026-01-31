@@ -8,4 +8,8 @@ inline int clamp_value_255(int value)
                         value);
 }
 
+void readSmallEndian(const char* data)
+{
+}
+
 #endif
