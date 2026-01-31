@@ -70,4 +70,21 @@ bool save_bmp(const char* filename, Image& edited_image)
 
 }
 
+bool save_png(const char* filename, Image& edited_image)
+{
+    std::ofstream file(filename, std::ios::binary);
 
+    if(!file.is_open())
+    {
+        std::cerr<<" Couldn't create the file "<<std::endl;
+        return false;
+    }    
+
+    //Writing the PNG Signature first
+    for(int i = 0; i < 8; i++)
+    {
+        file.write(reinterpret_cast<const char*>(PNG_SIGNATURE), 8);
+        std::cout<<"Signature wrote onto the file! "<<std::endl;
+    }
+
+}

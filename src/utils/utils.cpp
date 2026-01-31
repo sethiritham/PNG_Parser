@@ -30,3 +30,13 @@ uint32_t readBigEndian32(std::ifstream& file)
     file.read(reinterpret_cast<char*>(bytes), 4);
     return (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) | (uint32_t(bytes[2]) << 8) | uint32_t(bytes[3]);
 }
+
+void write_big_endian_32(std::ofstream& file, uint16_t value)
+{
+    uint8_t bytes[4];
+    bytes[0] = (value >> 24) & 0xFF; // Least significant byte LAST (BIG ENDIAN)
+    bytes[1] = (value >> 16) & 0xFF;
+    bytes[2] = (value >> 8) & 0xFF;
+    bytes[3] = (value >> 0) & 0xFF;
+    file.write(reinterpret_cast<char*>(bytes), 4);    
+}
