@@ -96,6 +96,21 @@ void process_and_display_tex(GLFWwindow* window, const char* file_path)
                 processImage(img.image, img.brightness, img.contrast, img.saturation);
                 UpdateTexture(img.texture, img.image);
             }
+
+
+            ImGui::Spacing();
+
+
+            if(!is_brightness || !is_contrast || !is_saturation)
+            {
+                if(ImGui::Button("Save Image"))
+                {
+                    if(SaveBMP("EditedImage.bmp", img.image))
+                    {
+                        std::cout<<"IMAGE SAVED!"<<std::endl;
+                    }
+                }
+            }
         }
         else
         {

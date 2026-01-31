@@ -20,5 +20,5 @@ int main()
     process_and_display_tex(window, file_path);
     destroy_UI(window);
     
-    return 0;
+       return 0;
 }

@@ -1,9 +1,4 @@
-#include <iostream>
-#include <cmath>
-#include <zlib.h>
-#include <cstdint>
-#include <fstream>
-#include "parser/PNGloader.h"
+#include "png_generator.hpp"    
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
@@ -24,7 +19,7 @@ void write_little_endian_32(std::ofstream& file, uint32_t value)
     file.write(reinterpret_cast<char*>(bytes), 4);
 }
 
-bool Save(const char* filename, Image& edited_image)
+bool SaveBMP(const char* filename, Image& edited_image)
 {
     std::ofstream file(filename, std::ios::binary);
 

@@ -5,18 +5,17 @@
 #include <string>
 #include <fstream>
 #include <cstdint>
+#include <iostream>
+#include <cmath>
+#include <zlib.h>
+#include <cstdint>
+#include <fstream>
+#include "parser/PNGloader.h"
 
 #include "parser/PNGloader.h"
 
-class png_generator
-{
-    public:
-        png_generator();
 
-        bool Save(const char* file_path, Image &edited_pixels);
-
-        ~png_generator();
-};
+bool SaveBMP(const char* filename, Image& edited_image);
 
 
 #endif

@@ -9,6 +9,7 @@
 #include <iostream>
 #include "editor.hpp"
 #include "texture.hpp"
+#include "generator/png_generator.hpp"
 
 GLFWwindow* init_UI();
 void destroy_UI(GLFWwindow *window);
