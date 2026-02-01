@@ -310,6 +310,23 @@ bool generate_chunk_IDAT(std::ofstream &file, Image &img)
 
 }
 
+void generate_chunk_IEND(std::ofstream &file)
+{
+    write_big_endian_32(file, 0);
+    file.write("IEND", 4);
+
+    std::vector<uint8_t> chunk_body;
+
+    chunk_body.push_back('I');
+    chunk_body.push_back('E');
+    chunk_body.push_back('N');
+    chunk_body.push_back('D');
+
+    uint32_t crc = crc_process(chunk_body);
+
+    write_big_endian_32(file, crc);
+}
+
 uint32_t crc_process(std::vector<uint8_t> chunk_body)
 {
     uint32_t crc_table[256];
@@ -370,6 +387,8 @@ bool save_png(const char* filename, Image& edited_image)
     }
 
     //IEND chunk fourth
+
+    
 
 
 }
