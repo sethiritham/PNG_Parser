@@ -72,6 +72,7 @@ bool save_bmp(const char* filename, Image& edited_image)
 
 }
 
+
 std::vector<uint8_t> filter_type_4(Image &img, std::ofstream &file)
 {
     const std::vector<uint8_t>& src = img.editedPixels;

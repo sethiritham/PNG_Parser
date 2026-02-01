@@ -19,5 +19,11 @@
  */
 bool save_bmp(const char* filename, Image& edited_image);
 
+/**
+ * @brief Saves PNG file version of the edited image.
+ */
+bool save_png(const char* filename, Image& edited_image);
+
+
 
 #endif
