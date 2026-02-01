@@ -71,6 +71,30 @@ bool save_bmp(const char* filename, Image& edited_image)
 }
 
 
+std::vector<uint8_t> filter_type_1(Image &img, std::ofstream &file)
+{
+    const std::vector<uint8_t>& src = img.editedPixels;
+    int channels = img.channels;
+    std::vector<uint8_t> filtered_data;
+
+    int stride = channels*img.width;
+    for(int col = 0; col < (int)img.height; col++)
+    {
+        filtered_data.push_back(1);
+        for(int row = 0; row < stride; row++)
+        {
+            int pixelIndex = col*stride + row;
+            uint8_t target = src[pixelIndex];
+            int left = ((row < channels) ? 0 : src[pixelIndex - channels]);  
+            int up = ((col == 0) ? 0 : src[pixelIndex - stride]);
+            
+            int filtered_byte = target - left;
+
+            filtered_data.push_back(filtered_byte);
+        }
+    }
+}
+
 /**
  * @brief FilteredByte = RawByte
  */
