@@ -225,10 +225,9 @@ std::vector<uint8_t> filter_type_0(Image &img, std::ofstream &file)
     return filtered_data;
 }
 
-std::vector<uint8_t> generate_chunk(Image &img,const char* chunk_type, std::ofstream &file)
+void generate_chunk_IHDR(Image &img,const char* chunk_type, std::ofstream &file)
 {
-    if(chunk_type == "IHDR")
-    {
+
         int channels = img.channels;
 
         int color_type = (channels == 3) ? 2 : 6;
@@ -268,7 +267,47 @@ std::vector<uint8_t> generate_chunk(Image &img,const char* chunk_type, std::ofst
         uint16_t crc =  crc_process(chunk_body);
 
         write_little_endian_32(file, crc);
+}
+
+bool generate_chunk_IDAT(std::ofstream &file, Image &img)
+{
+
+    std::vector<uint8_t> filtered_data = filter_type_4(img, file);
+    size_t out_size;
+    void *src_ptr = filtered_data.data();
+
+    void *compressed_data = tdefl_compress_mem_to_heap(src_ptr, filtered_data.size(), &out_size, 0);
+
+    std::vector<uint8_t> chunk_body;
+
+    if(!compressed_data)
+    {
+        std::cerr<<"COULD NOT COMPRESS THE FILE"<<std::endl;
+        return false;
     }
+
+    write_big_endian_32(file, out_size);
+
+    file.write("IDAT", 4);
+
+    chunk_body.push_back('I');
+    chunk_body.push_back('D');
+    chunk_body.push_back('A');
+    chunk_body.push_back('T');
+
+    uint8_t *byte_ptr = (uint8_t*)compressed_data;
+
+    file.write((char*)byte_ptr, out_size);
+
+    for(int i = 0; i < out_size; i++)
+    {
+        chunk_body.push_back(*(byte_ptr + i));
+    }
+    
+    uint32_t crc = crc_process(chunk_body);
+
+    write_big_endian_32(file, crc);
+
 }
 
 uint32_t crc_process(std::vector<uint8_t> chunk_body)
@@ -282,12 +321,21 @@ uint32_t crc_process(std::vector<uint8_t> chunk_body)
         for(int j = 0; j < 8; j++)
         {
             c = (c & 1) ?
-             ((c>>1) ^ 0xEDB88320) 
+             ((c>>1) ^ 0xEDB88320) // 32 degree polynomial used in CRC calc
              : (c >> 1);
         }
 
         crc_table[i] = c;
     }
+        uint32_t crc = 0xFFFFFFFF;
+
+        for (size_t i = 0; i < chunk_body.size(); i++)
+        {
+            uint8_t index = (crc ^ chunk_body[i])&0xFF;
+            crc = (crc >> 8) ^ crc_table[index];
+        }
+
+        return (crc ^ 0xFFFFFFFF);
 }
 
 bool save_png(const char* filename, Image& edited_image)
@@ -313,38 +361,15 @@ bool save_png(const char* filename, Image& edited_image)
 
 
     //IHDR chunk second
-    write_big_endian_32(file, 13); //13 Byte will be the length of the DATA 
+    generate_chunk_IHDR(edited_image, "IHDR", file);
 
-    std::vector<uint8_t> chunk_body;
-    file.write("IHDR", 4);
-    chunk_body.push_back('I');
-    chunk_body.push_back('H');
-    chunk_body.push_back('D');
-    chunk_body.push_back('R');
-
-
-    write_big_endian_32(file, edited_image.width);
-    write_big_endian_32(file, edited_image.height);
-
-    file.put(8);
-    file.put(color_type);
-    file.put(0);
-    file.put(0);
-    file.put(0);
-
-    std::vector<uint8_t> filtered_data = filter_type_4(edited_image, file);
-    size_t out_data;
-    void *src_ptr = filtered_data.data();
-
-    void *compressed_data = tdefl_compress_mem_to_heap(src_ptr, filtered_data.size(), &out_data, 0);
-
-    if(!compressed_data)
+    //IDAT chunk third
+    if(generate_chunk_IDAT(file, edited_image))
     {
-        std::cerr<<"COULD NOT COMPRESS THE FILE"<<std::endl;
-        return false;
+        std::cout << "Successfully wrote IDAT chunk!" << std::endl;
     }
 
-    write_big_endian_32(file, out_data);
+    //IEND chunk fourth
 
 
 }
