@@ -15,6 +15,7 @@ void write_little_endian_16(std::ofstream& file, uint16_t value);
 
 void write_little_endian_32(std::ofstream& file, uint32_t value);
 
+void write_big_endian_32(std::ofstream& file, uint16_t value);
 /**
  * @brief Converts BIG ENDIAN files to LITTLE ENDIAN (CPU expects Little Endian ordering)
  */
