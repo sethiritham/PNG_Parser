@@ -1,7 +1,4 @@
-#include <iostream>
 #include "PNGloader.h"
-#include <zlib.h>
-#include <cmath>
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};// FIxed signature at top of every PNG file
 

@@ -1,4 +1,6 @@
 #include "png_generator.hpp"    
+#define MINIZ_HEADER_FILE_ONLY
+#include "miniz.h"
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
@@ -70,8 +72,6 @@ bool save_bmp(const char* filename, Image& edited_image)
 
 }
 
-
-
 std::vector<uint8_t> filter_type_4(Image &img, std::ofstream &file)
 {
     const std::vector<uint8_t>& src = img.editedPixels;
@@ -81,7 +81,7 @@ std::vector<uint8_t> filter_type_4(Image &img, std::ofstream &file)
     int stride = channels*img.width;
     for(int col = 0; col < (int)img.height; col++)
     {
-        filtered_data.push_back(1);
+        filtered_data.push_back(4);
         for(int row = 0; row < stride; row++)
         {
             int pixelIndex = col*stride + row;
@@ -126,7 +126,7 @@ std::vector<uint8_t> filter_type_3(Image &img, std::ofstream &file)
     int stride = channels*img.width;
     for(int col = 0; col < (int)img.height; col++)
     {
-        filtered_data.push_back(1);
+        filtered_data.push_back(3);
         for(int row = 0; row < stride; row++)
         {
             int pixelIndex = col*stride + row;
@@ -154,7 +154,7 @@ std::vector<uint8_t> filter_type_2(Image &img, std::ofstream &file)
     int stride = channels*img.width;
     for(int col = 0; col < (int)img.height; col++)
     {
-        filtered_data.push_back(1);
+        filtered_data.push_back(2);
         for(int row = 0; row < stride; row++)
         {
             int pixelIndex = col*stride + row;
@@ -225,12 +225,78 @@ std::vector<uint8_t> filter_type_0(Image &img, std::ofstream &file)
     return filtered_data;
 }
 
+std::vector<uint8_t> generate_chunk(Image &img,const char* chunk_type, std::ofstream &file)
+{
+    if(chunk_type == "IHDR")
+    {
+        int channels = img.channels;
 
+        int color_type = (channels == 3) ? 2 : 6;
 
+        write_big_endian_32(file, 13); //13 Byte will be the length of the DATA 
+
+        std::vector<uint8_t> chunk_body;
+        file.write("IHDR", 4);
+        chunk_body.push_back('I');
+        chunk_body.push_back('H');
+        chunk_body.push_back('D');
+        chunk_body.push_back('R');
+
+        write_big_endian_32(file, img.width);
+        chunk_body.push_back((img.width >> 24) & 0xFF);
+        chunk_body.push_back((img.width >> 16) & 0xFF);
+        chunk_body.push_back((img.width >> 8) & 0xFF);
+        chunk_body.push_back((img.width >> 0) & 0xFF);
+        
+        write_big_endian_32(file, img.height);
+        chunk_body.push_back((img.height >> 24) & 0xFF);
+        chunk_body.push_back((img.height >> 16) & 0xFF);
+        chunk_body.push_back((img.height >> 8) & 0xFF);
+        chunk_body.push_back((img.height >> 0) & 0xFF);
+
+        file.put(8);
+        chunk_body.push_back(8);
+        file.put(color_type);
+        chunk_body.push_back(color_type);
+        file.put(0);
+        chunk_body.push_back(0);
+        file.put(0);
+        chunk_body.push_back(0);
+        file.put(0);
+        chunk_body.push_back(0);
+
+        uint16_t crc =  crc_process(chunk_body);
+
+        write_little_endian_32(file, crc);
+    }
+}
+
+uint32_t crc_process(std::vector<uint8_t> chunk_body)
+{
+    uint32_t crc_table[256];
+
+    //Generating table for CRC
+    for(int i = 0; i < 256; i++)
+    {
+        uint32_t c = i;
+        for(int j = 0; j < 8; j++)
+        {
+            c = (c & 1) ?
+             ((c>>1) ^ 0xEDB88320) 
+             : (c >> 1);
+        }
+
+        crc_table[i] = c;
+    }
+}
 
 bool save_png(const char* filename, Image& edited_image)
 {
     std::ofstream file(filename, std::ios::binary);
+
+    int channels = edited_image.channels;
+
+    int color_type = (channels == 3) ? 2 : 6;
 
     if(!file.is_open())
     {
@@ -238,11 +304,47 @@ bool save_png(const char* filename, Image& edited_image)
         return false;
     }    
 
-    //Writing the PNG Signature first
+    //PNG Signature first
     for(int i = 0; i < 8; i++)
     {
         file.write(reinterpret_cast<const char*>(PNG_SIGNATURE), 8);
         std::cout<<"Signature wrote onto the file! "<<std::endl;
     }
+
+
+    //IHDR chunk second
+    write_big_endian_32(file, 13); //13 Byte will be the length of the DATA 
+
+    std::vector<uint8_t> chunk_body;
+    file.write("IHDR", 4);
+    chunk_body.push_back('I');
+    chunk_body.push_back('H');
+    chunk_body.push_back('D');
+    chunk_body.push_back('R');
+
+
+    write_big_endian_32(file, edited_image.width);
+    write_big_endian_32(file, edited_image.height);
+
+    file.put(8);
+    file.put(color_type);
+    file.put(0);
+    file.put(0);
+    file.put(0);
+
+    std::vector<uint8_t> filtered_data = filter_type_4(edited_image, file);
+    size_t out_data;
+    void *src_ptr = filtered_data.data();
+
+    void *compressed_data = tdefl_compress_mem_to_heap(src_ptr, filtered_data.size(), &out_data, 0);
+
+    if(!compressed_data)
+    {
+        std::cerr<<"COULD NOT COMPRESS THE FILE"<<std::endl;
+        return false;
+    }
+
+    write_big_endian_32(file, out_data);
+
 
 }

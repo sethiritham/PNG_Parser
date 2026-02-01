@@ -40,3 +40,13 @@ void write_big_endian_32(std::ofstream& file, uint16_t value)
     bytes[3] = (value >> 0) & 0xFF;
     file.write(reinterpret_cast<char*>(bytes), 4);    
 }
+
+uint8_t *convert_to_big_endian_32(uint8_t value)
+{
+    uint8_t bytes[4];
+    bytes[0] = (value >> 24) & 0xFF; // Least significant byte LAST (BIG ENDIAN)
+    bytes[1] = (value >> 16) & 0xFF;
+    bytes[2] = (value >> 8) & 0xFF;
+    bytes[3] = (value >> 0) & 0xFF;
+    return bytes;
+}

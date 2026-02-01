@@ -5,6 +5,9 @@
 #include <string>
 #include <fstream>
 #include <cstdint>
+#include <zlib.h>
+#include <iostream>
+#include <cmath>
 
 #include "utils.hpp"
 
