@@ -10,14 +10,13 @@
 #include <zlib.h>
 #include <cstdint>
 
+#define MINIZ_HEADER_FILE_ONLY
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include "miniz.h"
 #include "parser/PNGloader.h"
 #include "utils.hpp"
+#include "comp_filter_png.hpp"
 
-
-/**
- * @brief Saves BitMap file version of the edited image.
- */
-bool save_bmp(const char* filename, Image& edited_image);
 
 /**
  * @brief Saves PNG file version of the edited image.
