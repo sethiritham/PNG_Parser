@@ -41,12 +41,14 @@ void write_big_endian_32(std::ofstream& file, uint32_t value)
     file.write(reinterpret_cast<char*>(bytes), 4);    
 }
 
-uint8_t *convert_to_big_endian_32(uint8_t value)
+/**
+ * @brief Cannonical swap
+ */
+uint32_t convert_to_big_endian_32(uint32_t v)
 {
-    uint8_t bytes[4];
-    bytes[0] = (value >> 24) & 0xFF; // Least significant byte LAST (BIG ENDIAN)
-    bytes[1] = (value >> 16) & 0xFF;
-    bytes[2] = (value >> 8) & 0xFF;
-    bytes[3] = (value >> 0) & 0xFF;
-    return bytes;
+    return ((v & 0x000000FF) << 24) |
+           ((v & 0x0000FF00) << 8)  |
+           ((v & 0x00FF0000) >> 8)  |
+           ((v & 0xFF000000) >> 24);
 }
+

@@ -1,6 +1,6 @@
 CXX      := g++
 CC       := gcc               # Added: The C compiler
-CXXFLAGS := -Wall -Wextra -std=c++17 -O2
+CXXFLAGS := -Wall -Wextra -std=c++17 -O2  
 CFLAGS   := -O2               # Added: Flags for C files (keep it simple for vendor libs)
 
 # Add -MMD -MP to generate dependency files automatically

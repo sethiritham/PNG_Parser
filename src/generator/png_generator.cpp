@@ -2,6 +2,24 @@
 
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
+
+#pragma pack(push, 1) //Leave no padding gap between variables
+struct IHDR_Chunk
+{
+    uint32_t length;
+    char chunk_type[4];
+    uint32_t width; //Convert to B-endian
+    uint32_t height;//Convert to B-endian
+    uint8_t bit_depth;
+    uint8_t color_type;
+    uint8_t compression;
+    uint8_t filter;
+    uint8_t interlace;
+    uint32_t crc;//Convert to B-endian
+};
+#pragma pack(pop)
+
+
 uint32_t crc_process(std::vector<uint8_t> chunk_body)
 {
     uint32_t crc_table[256];
@@ -32,46 +50,52 @@ uint32_t crc_process(std::vector<uint8_t> chunk_body)
 
 void generate_chunk_IHDR(Image &img, std::ofstream &file)
 {
+    IHDR_Chunk chunk;
 
-        int channels = img.channels;
+    int channels = img.channels;
+    int color_type = (channels == 3) ? 2 : 6;
 
-        int color_type = (channels == 3) ? 2 : 6;
+    chunk.length = convert_to_big_endian_32(13);
 
-        write_big_endian_32(file, 13); //13 Byte will be the length of the DATA 
+    chunk.chunk_type[0] = 'I';
+    chunk.chunk_type[1] = 'H';
+    chunk.chunk_type[2] = 'D';
+    chunk.chunk_type[3] = 'R';
+    
+    chunk.width = convert_to_big_endian_32(img.width);
+    chunk.height = convert_to_big_endian_32(img.height);
+    chunk.bit_depth = 8;
+    chunk.color_type = color_type;
+    chunk.compression = 0;
+    chunk.interlace = 0;
+    chunk.filter = 0;
+    chunk.interlace = 0;
 
-        std::vector<uint8_t> chunk_body;
-        file.write("IHDR", 4);
-        chunk_body.push_back('I');
-        chunk_body.push_back('H');
-        chunk_body.push_back('D');
-        chunk_body.push_back('R');
+    std::vector<uint8_t> chunk_body;
+    chunk_body.push_back('I');
+    chunk_body.push_back('H');
+    chunk_body.push_back('D');
+    chunk_body.push_back('R');
 
-        write_big_endian_32(file, img.width);
-        chunk_body.push_back((img.width >> 24) & 0xFF);
-        chunk_body.push_back((img.width >> 16) & 0xFF);
-        chunk_body.push_back((img.width >> 8) & 0xFF);
-        chunk_body.push_back((img.width >> 0) & 0xFF);
-        
-        write_big_endian_32(file, img.height);
-        chunk_body.push_back((img.height >> 24) & 0xFF);
-        chunk_body.push_back((img.height >> 16) & 0xFF);
-        chunk_body.push_back((img.height >> 8) & 0xFF);
-        chunk_body.push_back((img.height >> 0) & 0xFF);
+    chunk_body.push_back((img.width >> 24) & 0xFF);
+    chunk_body.push_back((img.width >> 16) & 0xFF);
+    chunk_body.push_back((img.width >> 8) & 0xFF);
+    chunk_body.push_back((img.width >> 0) & 0xFF);
+    
+    chunk_body.push_back((img.height >> 24) & 0xFF);
+    chunk_body.push_back((img.height >> 16) & 0xFF);
+    chunk_body.push_back((img.height >> 8) & 0xFF);
+    chunk_body.push_back((img.height >> 0) & 0xFF);
 
-        file.put(8);
-        chunk_body.push_back(8);
-        file.put(color_type);
-        chunk_body.push_back(color_type);
-        file.put(0);
-        chunk_body.push_back(0);
-        file.put(0);
-        chunk_body.push_back(0);
-        file.put(0);
-        chunk_body.push_back(0);
+    chunk_body.push_back(8);
+    chunk_body.push_back(color_type);
+    chunk_body.push_back(0);
+    chunk_body.push_back(0);
+    chunk_body.push_back(0);
 
-        uint32_t crc =  crc_process(chunk_body);
+    chunk.crc = convert_to_big_endian_32(crc_process(chunk_body));
 
-        write_big_endian_32(file, crc);
+    file.write(reinterpret_cast<char*>(&chunk), sizeof(chunk));
 }
 
 bool generate_chunk_IDAT(std::ofstream &file, Image &img)

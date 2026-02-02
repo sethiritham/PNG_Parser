@@ -22,6 +22,6 @@ void write_big_endian_32(std::ofstream& file, uint32_t value);
 
 uint32_t readBigEndian32(std::ifstream& file);
 
-uint8_t *convert_to_big_endian_32(uint8_t value);
+uint32_t convert_to_big_endian_32(uint32_t v);
 
 #endif
