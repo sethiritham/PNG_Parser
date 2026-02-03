@@ -1,7 +1,16 @@
-src/vendor/
+# Build output
 build/
+
+# Vendor code
+src/vendor/
+
+# Editor/runtime files
 imgui.ini
-.vscode
 *.ini
+
+# Images
 *.bmp
 EditedImage.png
+
+# IDE
+.vscode/
