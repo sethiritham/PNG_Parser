@@ -176,7 +176,7 @@ Please open issues for bugs, feature requests, or to discuss design/approach.
 
 ## License
 
-No license file is included in this repository as of this README. If you want to make this project open-source, consider adding a LICENSE file (MIT, Apache-2.0, etc.) and update this section.
+MIT 
 
 ---
 
