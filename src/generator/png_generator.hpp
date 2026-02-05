@@ -24,5 +24,22 @@
 bool save_png(const char* filename, Image& edited_image);
 
 
+#pragma pack(push, 1) //Leave no padding gap between variables
+struct IHDR_Chunk
+{
+    uint32_t length;
+    char chunk_type[4];
+    uint32_t width; //Convert to B-endian
+    uint32_t height;//Convert to B-endian
+    uint8_t bit_depth;
+    uint8_t color_type;
+    uint8_t compression;
+    uint8_t filter;
+    uint8_t interlace;
+    uint32_t crc;//Convert to B-endian
+};
+#pragma pack(pop)
+
+
 
 #endif

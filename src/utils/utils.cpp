@@ -52,3 +52,11 @@ uint32_t convert_to_big_endian_32(uint32_t v)
            ((v & 0xFF000000) >> 24);
 }
 
+uint32_t convert_to_little_endian_32(uint32_t v)
+{
+    return ((v & 0x000000FF) >> 24) |
+           ((v & 0x0000FF00) >> 8)  |
+           ((v & 0x00FF0000) << 8)  |
+           ((v & 0xFF000000) << 24);
+}
+

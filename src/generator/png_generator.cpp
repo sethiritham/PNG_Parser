@@ -3,23 +3,6 @@
 static const uint8_t PNG_SIGNATURE[8] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
 
-#pragma pack(push, 1) //Leave no padding gap between variables
-struct IHDR_Chunk
-{
-    uint32_t length;
-    char chunk_type[4];
-    uint32_t width; //Convert to B-endian
-    uint32_t height;//Convert to B-endian
-    uint8_t bit_depth;
-    uint8_t color_type;
-    uint8_t compression;
-    uint8_t filter;
-    uint8_t interlace;
-    uint32_t crc;//Convert to B-endian
-};
-#pragma pack(pop)
-
-
 uint32_t crc_process(std::vector<uint8_t> chunk_body)
 {
     uint32_t crc_table[256];

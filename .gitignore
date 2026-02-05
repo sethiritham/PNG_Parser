@@ -9,7 +9,7 @@ imgui.ini
 *.ini
 
 # Images
-*.bmp
+*.bmpk
 EditedImage.png
 
 # IDE
